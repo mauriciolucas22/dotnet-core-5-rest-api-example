@@ -71,6 +71,38 @@ namespace dotnet_rest_api.Controllers
                 });
             }
         }
+
+        [Route("api/products")]
+        [HttpPatch]
+        public IActionResult Patch([FromBody] Product product)
+        {
+            if (product.Name.Equals(""))
+            {
+                Response.StatusCode = 400;
+                return new ObjectResult(new
+                {
+                    msg = "Invalid params"
+                });
+            }
+
+            try
+            {
+                var _product = database.Products.First(item => item.Id == product.Id);
+
+                _product.Name = product.Name;
+                database.SaveChanges();
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                Response.StatusCode = 500;
+                return new ObjectResult(new
+                {
+                    msg = "Erro Geral",
+                });
+            }
+
+        }
     }
 
 }
