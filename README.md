@@ -68,6 +68,12 @@ dotnet ef migrations add MyMigrationName -v
 dotnet ef database update -v
 ```
 
+# HATEOAS
+
+```
+
+```
+
 # Do you create a new project?
 
 ```bash

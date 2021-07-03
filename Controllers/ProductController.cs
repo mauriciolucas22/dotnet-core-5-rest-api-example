@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using dotnet_rest_api.Models;
 using dotnet_rest_api.Data;
+using dotnet_rest_api.HATEOAS;
 
 namespace dotnet_rest_api.Controllers
 {
@@ -10,10 +11,18 @@ namespace dotnet_rest_api.Controllers
     public class ProductController : ControllerBase
     {
         private readonly ApplicationDBContext database;
+        private HATEOAS.HATEOAS HATEOAS;
 
         public ProductController(ApplicationDBContext database)
         {
             this.database = database;
+            HATEOAS = new HATEOAS.HATEOAS("http://localhost:5001/api/products");
+
+            HATEOAS.AddAction("SHOW_PRODUCT", "GET");
+            HATEOAS.AddAction("STORE_PRODUCT", "PATCH");
+            HATEOAS.AddAction("DELETE_PRODUCT", "DELETE");
+
+
         }
 
         [Route("api/products")]
@@ -30,8 +39,12 @@ namespace dotnet_rest_api.Controllers
         {
             try
             {
-                var products = database.Products.First(item => item.Id == id);
-                return Ok(products);
+                var product = database.Products.First(item => item.Id == id);
+
+                ProductContainer productHATEOAS = new ProductContainer(product, HATEOAS.GetActions(product.Id.ToString()));
+
+
+                return Ok(productHATEOAS.GetProductContainer());
             }
             catch (Exception err)
             {
@@ -102,6 +115,27 @@ namespace dotnet_rest_api.Controllers
                 });
             }
 
+        }
+
+        public class ProductContainer
+        {
+            private Product product;
+            private Link[] links;
+
+            public ProductContainer(Product product, Link[] links)
+            {
+                this.product = product;
+                this.links = links;
+            }
+
+            public Object GetProductContainer()
+            {
+                return new
+                {
+                    product = this.product,
+                    links = this.links
+                };
+            }
         }
     }
 
